@@ -1,10 +1,12 @@
 from celery import shared_task
 import redis
+from django_redis import get_redis_connection
+
+from .get_min_amount import get_min_amount
+
 
 from .exchange import buy_from_exchange
-from .models import Order
-
-redis_client = redis.StrictRedis(host="localhost", port=6379, db=0, decode_responses=True)
+from ..models import Order, OrderStatus
 
 @shared_task
 def fulfill_order(order_id, crypto_name, amount):
@@ -29,7 +31,8 @@ def fulfill_order(order_id, crypto_name, amount):
             end 
         """
 
-        total_amount, orders = redis_client.eval(lua_script, 2, 
+        redis_connection = get_redis_connection()
+        total_amount, orders = redis_connection.eval(lua_script, 2, 
                                                 crypt_orders_sum_key, 
                                                 crypt_pending_orders_key, 
                                                 amount, 
@@ -45,16 +48,8 @@ def fulfill_order(order_id, crypto_name, amount):
 
             for order_id in orders:
                 order = Order.objects.get(id=order_id)
-                order.status = 1
+                order.status = OrderStatus.COMPLETED.value
                 order.save()
                 
     except Exception as e:
         print(f"Error processing order {order_id}: {str(e)}")
-
-min_crypto_amount = {
-    "ABAN": 10
-}
-
-def get_min_amount(crypto_name):
-    min_amount = min_crypto_amount.get(crypto_name)
-    return min_amount

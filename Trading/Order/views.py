@@ -1,15 +1,15 @@
 from datetime import datetime
-from enum import Enum
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
 
+from .Services.get_crypto_price import get_crypto_price
 from Users.models import User
-from .models import Order
+from .models import Order, OrderStatus
 from .serializers import OrderSerializer
-from .proecess_orders import fulfill_order
+from .Services.proecess_orders import fulfill_order
 
 class PlaceOrderView(CreateAPIView):
     serializer_class = OrderSerializer
@@ -53,16 +53,3 @@ class PlaceOrderView(CreateAPIView):
                 return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-prices = {
-    "ABAN": 4
-}
-
-def get_crypto_price(crypto_symbol):
-    price = prices.get(crypto_symbol)
-    return price
-
-class OrderStatus(Enum):
-    PENDING = 0
-    COMPLETED = 1
