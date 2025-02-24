@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "drf_yasg",
+    "Trading",
     "Users",
     "Order",
 ]
@@ -94,6 +95,16 @@ DATABASES = {
 #         "PORT": "5432",
 #     }
 # }
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://localhost:6379/0',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
 
 # Celery Configuration
 CELERY_BROKER_URL = "redis://localhost:6379/0"

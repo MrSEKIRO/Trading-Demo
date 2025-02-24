@@ -1,6 +1,11 @@
+from enum import Enum
 import uuid
 from django.db import models
 from Users.models import User
+
+class OrderStatus(Enum):
+    PENDING = 0
+    COMPLETED = 1
 
 class Order(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
