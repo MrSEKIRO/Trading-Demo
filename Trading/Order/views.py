@@ -23,15 +23,15 @@ class PlaceOrderView(CreateAPIView):
                 crypto_symbol = request.data.get("crypto_symbol")
                 userId = request.data.get("user")
 
-                user = User.objects.get(id=userId)
-
-                price = get_crypto_price(crypto_symbol)
-                orderPrice = price * amount
-
-                if user.balance < orderPrice:
-                    return Response({"error": "Not enough balance"}, status=status.HTTP_400_BAD_REQUEST)
-
                 with transaction.atomic():
+                    user = User.objects.select_for_update().get(id=userId)
+
+                    price = get_crypto_price(crypto_symbol)
+                    orderPrice = price * amount
+
+                    if user.balance < orderPrice:
+                        return Response({"error": "Not enough balance"}, status=status.HTTP_400_BAD_REQUEST)
+                    
                     user.balance -= orderPrice
 
                     order = Order.objects.create(
